@@ -20,9 +20,21 @@ db.once('open', () => {
   console.log('Connected to MongoDB');
 });
 
+// Define the topics array
+const topics = [
+  'Overall satisfaction with the course:',
+  "Instructor's knowledge and expertise:",
+  'Clarity of course materials and resources:',
+  'Relevance of the topics covered:',
+  'Effectiveness of practical exercises and projects:',
+  'Quality of the learning environment (online/offline):',
+  'Availability of support and guidance:',
+  'Communication and feedback from the instructor:',
+  'How would you rate your overall learning experience? (1-5):',
+];
+
 // Create a schema for feedback data
 const feedbackSchema = new mongoose.Schema({
-  
   courseName: String,
   paperName: String,
   instructorName: String,
@@ -30,9 +42,9 @@ const feedbackSchema = new mongoose.Schema({
   batchNumber: String,
   ratings: [
     {
-      topics:String,
-      rating:Number
-    }
+      topic: String,
+      rating: Number,
+    },
   ],
   courseExpectation: String,
   courseImprovement: String,
@@ -42,18 +54,20 @@ const feedbackSchema = new mongoose.Schema({
 const Feedback = mongoose.model('Feedback', feedbackSchema);
 
 app.post('/submit-feedback', async (req, res) => {
-  const formData = req.body;
-
+  console.log('Received feedback data:', req.body);
+  
   try {
+    const formData = req.body;
+
     const feedback = new Feedback({
       courseName: formData.courseName,
       paperName: formData.paperName,
       instructorName: formData.instructorName,
       studentName: formData.studentName,
       batchNumber: formData.batchNumber,
-      ratings: formData.ratings.map((rating, index) => ({
-        topic: topics[index], // Assuming 'topics' is defined somewhere in your code
-        ratings,
+      ratings: topics.map((topic, index) => ({
+        topic: topic,
+        rating: formData.ratings[index],
       })),
       courseExpectation: formData.courseExpectation,
       courseImprovement: formData.courseImprovement,
@@ -68,6 +82,8 @@ app.post('/submit-feedback', async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
+    
 app.get('/get-feedback', async (req, res) => {
   try {
     const feedbackData = await Feedback.find();
